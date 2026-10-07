@@ -9,26 +9,44 @@ on:
 
 jobs:
   build:
-    # Importante: fijo en 22.04 a proposito. Buildozer todavia tiene
-    # problemas conocidos en runners mas nuevos (24.04/26.04), asi que
-    # NO cambies esto a "ubuntu-latest".
+    # Importante: fijo en 22.04 a proposito (necesita libtinfo5, que ya
+    # no esta en versiones mas nuevas de Ubuntu). NO cambiar a "ubuntu-latest".
     runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        id: buildozer
-        # Cambiado de ArtemSBulgakov/buildozer-action@v1: esa imagen Docker
-        # fallaba al construirse (corrida #1, "Docker build failed with
-        # exit code 1", reintentado 3 veces). Este fork es mas estable.
-        uses: n8marti/buildozer-action@fix-user-doesnt-exist
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          command: buildozer android debug
-          buildozer_version: stable
+          python-version: '3.11'
+
+      # Compilamos con buildozer directamente sobre el runner (sin Docker).
+      # Antes se probo con las Actions de terceros ArtemSBulgakov y n8marti
+      # (buildozer-action), pero ambas fallan actualmente porque sus
+      # imagenes Docker no logran construirse (ver corridas #1 y #2:
+      # "Docker build failed with exit code 1"). Este metodo es el
+      # recomendado por la documentacion oficial de buildozer para CI.
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk-headless \
+            autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev build-essential ccache
+
+      - name: Instalar buildozer y Cython
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer==1.5.0 cython==0.29.36
+
+      - name: Build with Buildozer
+        run: |
+          yes | buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: gymtrackpro-apk
-          path: ${{ steps.buildozer.outputs.filename }}
+          path: bin/*.apk
