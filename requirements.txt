@@ -1,0 +1,7 @@
+# Dependencias para probar la app en escritorio (Windows/Linux/Mac).
+# Deben coincidir con las versiones listadas en buildozer.spec para que
+# el comportamiento en escritorio y en el APK compilado sea el mismo.
+kivy==2.3.0
+kivymd==1.2.0
+plyer
+pillow

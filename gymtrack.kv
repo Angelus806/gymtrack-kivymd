@@ -1,0 +1,168 @@
+#:kivy 2.3.0
+#:import dp kivy.metrics.dp
+
+
+<AppHeader@MDBoxLayout>:
+    timer_display: ""
+    orientation: "horizontal"
+    size_hint_y: None
+    height: dp(60)
+    padding: [dp(14), dp(8)]
+    spacing: dp(10)
+    md_bg_color: 0.058, 0.090, 0.165, 1
+
+    canvas.before:
+        Color:
+            rgba: 0.12, 0.16, 0.24, 1
+        Line:
+            points: [self.x, self.y, self.x + self.width, self.y]
+            width: 1
+
+    MDBoxLayout:
+        size_hint_x: None
+        width: dp(38)
+        MDIconButton:
+            icon: "dumbbell"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+            md_bg_color: 0.30, 0.27, 0.90, 1
+            pos_hint: {"center_y": 0.5}
+            disabled: True
+
+    MDBoxLayout:
+        orientation: "vertical"
+        MDLabel:
+            text: "GymTrack [color=818cf8]Pro[/color]"
+            markup: True
+            bold: True
+            font_style: "Subtitle1"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+            size_hint_y: None
+            height: dp(22)
+        MDLabel:
+            text: "5 Dias - Diario de Cargas"
+            font_style: "Caption"
+            theme_text_color: "Custom"
+            text_color: 0.58, 0.64, 0.72, 1
+            size_hint_y: None
+            height: dp(16)
+
+    MDRectangleFlatIconButton:
+        id: timer_btn
+        text: root.timer_display
+        icon: "timer-outline"
+        line_color: 0.23, 0.25, 0.33, 1
+        theme_text_color: "Custom"
+        text_color: 0.80, 0.84, 0.90, 1
+        icon_color: 0.49, 0.46, 1, 1
+        md_bg_color: 0.12, 0.16, 0.24, 1
+        font_size: "13sp"
+        size_hint_y: None
+        height: dp(36)
+        padding: [dp(8), 0]
+        on_release: app.open_timer_modal()
+
+
+<FloatingTimerCard@MDCard>:
+    countdown_text: ""
+    orientation: "horizontal"
+    padding: [dp(14), dp(10)]
+    spacing: dp(10)
+    md_bg_color: 0.067, 0.094, 0.153, 0.98
+    radius: [18, 18, 18, 18]
+    line_color: 0.30, 0.27, 0.90, 0.5
+    elevation: 8
+
+    MDBoxLayout:
+        spacing: dp(10)
+        MDIconButton:
+            icon: "timer-sand"
+            theme_text_color: "Custom"
+            text_color: 0.49, 0.46, 1, 1
+            md_bg_color: 0.30, 0.27, 0.90, 0.15
+            disabled: True
+            pos_hint: {"center_y": 0.5}
+        MDBoxLayout:
+            orientation: "vertical"
+            MDLabel:
+                text: "DESCANSO ACTIVO"
+                font_style: "Overline"
+                theme_text_color: "Custom"
+                text_color: 0.58, 0.64, 0.72, 1
+                size_hint_y: None
+                height: dp(16)
+            MDLabel:
+                id: countdown_label
+                text: root.countdown_text
+                bold: True
+                font_style: "H6"
+                theme_text_color: "Custom"
+                text_color: 0.65, 0.64, 1, 1
+
+    MDBoxLayout:
+        size_hint_x: None
+        width: dp(140)
+        spacing: dp(6)
+        MDRaisedButton:
+            text: "+30s"
+            md_bg_color: 0.12, 0.16, 0.24, 1
+            theme_text_color: "Custom"
+            text_color: 0.80, 0.84, 0.90, 1
+            font_size: "12sp"
+            on_release: app.add_timer_time(30)
+        MDIconButton:
+            icon: "stop"
+            theme_text_color: "Custom"
+            text_color: 0.94, 0.33, 0.42, 1
+            md_bg_color: 0.94, 0.33, 0.42, 0.12
+            on_release: app.stop_rest_timer()
+
+
+<RootWidget>:
+
+    MDBoxLayout:
+        orientation: "vertical"
+        size_hint: 1, 1
+
+        AppHeader:
+            id: header
+            timer_display: app.timer_display
+
+        ScreenManager:
+            id: screen_manager
+
+            Screen:
+                name: "workout"
+                BoxLayout:
+                    id: workout_container
+
+            Screen:
+                name: "history"
+                BoxLayout:
+                    id: history_container
+
+            Screen:
+                name: "rm"
+                BoxLayout:
+                    id: rm_container
+
+            Screen:
+                name: "settings"
+                BoxLayout:
+                    id: settings_container
+
+        BoxLayout:
+            id: bottom_nav_slot
+            size_hint_y: None
+            height: dp(64)
+
+    FloatingTimerCard:
+        id: floating_timer
+        countdown_text: app.timer_display
+        size_hint: None, None
+        width: root.width - dp(28)
+        height: dp(72)
+        pos_hint: {"center_x": 0.5}
+        y: dp(78)
+        opacity: 0
