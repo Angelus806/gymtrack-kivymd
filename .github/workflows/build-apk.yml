@@ -19,11 +19,10 @@ jobs:
 
       - name: Build with Buildozer
         id: buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        # Si este paso falla con el error "chown: invalid user: 'user'"
-        # (bug conocido: github.com/ArtemSBulgakov/buildozer-action/issues/42),
-        # comenta la linea de arriba y descomenta esta otra:
-        # uses: n8marti/buildozer-action@fix-user-doesnt-exist
+        # Cambiado de ArtemSBulgakov/buildozer-action@v1: esa imagen Docker
+        # fallaba al construirse (corrida #1, "Docker build failed with
+        # exit code 1", reintentado 3 veces). Este fork es mas estable.
+        uses: n8marti/buildozer-action@fix-user-doesnt-exist
         with:
           command: buildozer android debug
           buildozer_version: stable
