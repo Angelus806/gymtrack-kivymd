@@ -1,0 +1,35 @@
+name: Build Android APK
+
+# Se ejecuta sola al subir cambios a main, o manualmente desde la
+# pestana "Actions" de GitHub con el boton "Run workflow".
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    # Importante: fijo en 22.04 a proposito. Buildozer todavia tiene
+    # problemas conocidos en runners mas nuevos (24.04/26.04), asi que
+    # NO cambies esto a "ubuntu-latest".
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with Buildozer
+        id: buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        # Si este paso falla con el error "chown: invalid user: 'user'"
+        # (bug conocido: github.com/ArtemSBulgakov/buildozer-action/issues/42),
+        # comenta la linea de arriba y descomenta esta otra:
+        # uses: n8marti/buildozer-action@fix-user-doesnt-exist
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gymtrackpro-apk
+          path: ${{ steps.buildozer.outputs.filename }}
