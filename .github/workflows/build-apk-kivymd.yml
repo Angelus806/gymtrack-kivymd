@@ -1,10 +1,13 @@
-name: Build Android APK
+name: Build Android APK (Kivy - en pausa)
 
-# Se ejecuta sola al subir cambios a main, o manualmente desde la
-# pestana "Actions" de GitHub con el boton "Run workflow".
+# NOTA: se dejo de disparar automaticamente en cada push porque el build
+# fallaba de forma persistente compilando "hostpython3" (incompatibilidad
+# entre python-for-android y el toolchain actual de GitHub Actions, ver
+# corridas #1 a #4). Se puede seguir ejecutando manualmente desde la
+# pestana Actions si en el futuro se quiere retomar este camino (Kivy).
+# Mientras tanto, el camino que SI compila es Capacitor (ver
+# .github/workflows/build-apk-capacitor.yml y la carpeta capacitor_app/).
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch: {}
 
 jobs:

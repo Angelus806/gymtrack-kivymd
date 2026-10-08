@@ -1,0 +1,49 @@
+name: Build Android APK (Capacitor)
+
+# Se ejecuta sola al subir cambios a main, o manualmente desde la
+# pestana "Actions" de GitHub con el boton "Run workflow".
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: capacitor_app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Sincronizar proyecto Android (Capacitor)
+        run: npx cap sync android
+
+      - name: Dar permiso de ejecucion a gradlew
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK debug
+        working-directory: capacitor_app/android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Subir APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gymtrackpro-apk
+          path: capacitor_app/android/app/build/outputs/apk/debug/app-debug.apk

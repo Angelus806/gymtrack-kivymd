@@ -1,0 +1,18 @@
+{
+  "name": "gymtrack-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GymTrack Pro - Rutina y diario de cargas (app Android via Capacitor)",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/haptics": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1"
+  }
+}

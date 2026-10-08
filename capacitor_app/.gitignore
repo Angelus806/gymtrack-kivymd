@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+
+# Android / Gradle build artifacts (se regeneran en CI)
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/local.properties
+*.apk
+*.aab

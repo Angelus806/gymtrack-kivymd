@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>GymTrack Pro - Rutina & Diario</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            accent: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 9999px;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-slate-900/95 border-b border-slate-800/80 px-4 py-3 shrink-0 flex items-center justify-between z-20 backdrop-blur-md">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2 rounded-xl shadow-lg shadow-indigo-500/25">
+                <i data-lucide="dumbbell" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-base tracking-tight text-white leading-tight">GymTrack <span class="text-indigo-400">Pro</span></h1>
+                <p class="text-[10px] text-slate-400 font-medium">5 Días • Diario de Cargas</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="togglePwaModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold hover:bg-indigo-500/20 active:scale-95 transition-all">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Instalar App</span>
+            </button>
+            <button onclick="openTimerModal()" id="header-timer-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-700 active:scale-95 transition-all">
+                <i data-lucide="timer" class="w-4 h-4 text-indigo-400"></i>
+                <span id="header-timer-display" class="font-mono">00:00</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main id="app-viewport" class="flex-1 overflow-y-auto custom-scrollbar p-4 pb-28 max-w-md mx-auto w-full">
+        <!-- JS dynamically renders views here -->
+    </main>
+
+    <div id="floating-timer-card" class="hidden fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-slate-900/95 border border-indigo-500/40 backdrop-blur-xl rounded-2xl p-3 shadow-2xl z-30 flex items-center justify-between transition-all animate-in slide-in-from-bottom duration-200">
+        <div class="flex items-center gap-3">
+            <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <i data-lucide="timer" class="w-5 h-5 animate-pulse"></i>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Descanso Activo</p>
+                <div id="rest-timer-countdown" class="text-xl font-black tracking-tight text-indigo-300 font-mono">01:30</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <button onclick="addTimerTime(30)" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white active:scale-95 text-xs font-bold border border-slate-700">+30s</button>
+            <button onclick="stopRestTimer()" class="p-2 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 active:scale-95 border border-rose-500/20">
+                <i data-lucide="square" class="w-4 h-4 fill-current"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 z-40 max-w-md mx-auto">
+        <div class="grid grid-cols-4 h-16">
+            <button onclick="switchTab('workout')" id="nav-workout" class="flex flex-col items-center justify-center text-indigo-400 transition-colors">
+                <i data-lucide="calendar" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-semibold">Rutina</span>
+            </button>
+            <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center justify-center text-slate-400 transition-colors">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-semibold">Historial</span>
+            </button>
+            <button onclick="switchTab('rm')" id="nav-rm" class="flex flex-col items-center justify-center text-slate-400 transition-colors">
+                <i data-lucide="calculator" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-semibold">Calc 1RM</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center text-slate-400 transition-colors">
+                <i data-lucide="settings" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-semibold">Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- PWA Installation Modal -->
+    <div id="pwa-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="smartphone" class="w-5 h-5 text-indigo-400"></i>
+                    <h3 class="font-bold text-slate-100 text-base">Instalar en tu Celular</h3>
+                </div>
+                <button onclick="togglePwaModal()" class="p-1 rounded-full text-slate-400 hover:text-white bg-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300">
+                <p class="leading-relaxed">Puedes usar esta app **100% offline** agregándola a la pantalla de inicio de tu teléfono sin necesidad de tiendas de aplicaciones:</p>
+
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-200">
+                        <i data-lucide="chrome" class="w-4 h-4 text-emerald-400"></i> Android (Chrome)
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-400 pl-1">
+                        <li>Toca el menú de 3 puntos (<b>⋮</b>) arriba a la derecha.</li>
+                        <li>Selecciona <b>"Agregar a la pantalla principal"</b> o "Instalar Aplicación".</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-200">
+                        <i data-lucide="apple" class="w-4 h-4 text-indigo-400"></i> iPhone (Safari)
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-400 pl-1">
+                        <li>Toca el botón <b>Compartir</b> (icono con flecha hacia arriba).</li>
+                        <li>Baja y selecciona <b>"Agregar al inicio"</b> (+).</li>
+                    </ol>
+                </div>
+            </div>
+
+            <button onclick="togglePwaModal()" class="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/30 active:scale-95 text-xs">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Timer Setup Modal -->
+    <div id="timer-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-2xl p-5 shadow-2xl text-center">
+            <h3 class="font-bold text-slate-100 text-base mb-1">Temporizador de Descanso</h3>
+            <p class="text-xs text-slate-400 mb-4">Selecciona los segundos de descanso</p>
+
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button onclick="startRestTimer(45); closeTimerModal()" class="p-3 bg-slate-800 hover:bg-indigo-600 rounded-xl font-bold text-sm border border-slate-700">45 seg</button>
+                <button onclick="startRestTimer(60); closeTimerModal()" class="p-3 bg-slate-800 hover:bg-indigo-600 rounded-xl font-bold text-sm border border-slate-700">60 seg</button>
+                <button onclick="startRestTimer(90); closeTimerModal()" class="p-3 bg-slate-800 hover:bg-indigo-600 rounded-xl font-bold text-sm border border-slate-700">90 seg</button>
+                <button onclick="startRestTimer(120); closeTimerModal()" class="p-3 bg-slate-800 hover:bg-indigo-600 rounded-xl font-bold text-sm border border-slate-700">120 seg</button>
+            </div>
+
+            <button onclick="closeTimerModal()" class="w-full bg-slate-800 text-slate-300 font-bold py-2 rounded-xl text-xs">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Application Script Data & Logic -->
+    <script>
+        const WORKOUT_PROGRAM = [
+            {
+                id: 'day1',
+                title: 'Día 1: Empujes (Push)',
+                subtitle: 'Pecho, Hombros y Tríceps',
+                color: 'from-blue-600 to-indigo-600',
+                badge: 'Push',
+                exercises: [
+                    { id: 'd1_e1', name: 'Press Banco Inclinado', target: 'Pecho Superior', sets: 3, reps: '8-10', rest: 90, note: 'Banco a 30-45°. Controlar la bajada.' },
+                    { id: 'd1_e2', name: 'Press Plano', target: 'Pecho Medio/Inferior', sets: 3, reps: '8-10', rest: 90, note: 'Barra o mancuernas. Escápulas retraídas.' },
+                    { id: 'd1_e3', name: 'Press Militar', target: 'Hombro Anterior', sets: 3, reps: '8-10', rest: 90, note: 'De pie o sentado. Glúteos y abdomen firmes.' },
+                    { id: 'd1_e4', name: 'Vuelos Laterales', target: 'Hombro Lateral', sets: 4, reps: '12-15', rest: 60, note: 'Polea o mancuernas. Codos sutilmente flexionados.' },
+                    { id: 'd1_e5', name: 'Extensión Tríceps Polea Cuerda', target: 'Tríceps (Lateral)', sets: 3, reps: '12-15', rest: 60, note: 'Abrir la cuerda abajo al máximo.' },
+                    { id: 'd1_e6', name: 'Press Francés / Fondos', target: 'Tríceps (Larga)', sets: 3, reps: '10-12', rest: 75, note: 'Mantener codos fijos mirando al frente.' }
+                ]
+            },
+            {
+                id: 'day2',
+                title: 'Día 2: Tracciones (Pull)',
+                subtitle: 'Espalda, Hombro Post. y Bíceps',
+                color: 'from-emerald-600 to-teal-600',
+                badge: 'Pull',
+                exercises: [
+                    { id: 'd2_e1', name: 'Dominadas (o Asistidas)', target: 'Espalda Ancho', sets: 3, reps: '6-8 / Fallo', rest: 120, note: 'Agarre prono. Traccionar con codos hacia abajo.' },
+                    { id: 'd2_e2', name: 'Jalón al Pecho', target: 'Dorsal Ancho', sets: 3, reps: '10-12', rest: 90, note: 'Llevar barra a la zona clavicular.' },
+                    { id: 'd2_e3', name: 'Remo con Barra o Polea', target: 'Espalda Densidad', sets: 3, reps: '8-10', rest: 90, note: 'Traccionar hacia el ombligo.' },
+                    { id: 'd2_e4', name: 'Cruzados en Polea (Pájaros)', target: 'Hombro Posterior', sets: 4, reps: '12-15', rest: 60, note: 'Polea alta cruzada manteniendo tensión constante.' },
+                    { id: 'd2_e5', name: 'Curl de Bíceps Barra Z', target: 'Bíceps', sets: 3, reps: '10-12', rest: 75, note: 'Evitar inercia o balanceo del torso.' },
+                    { id: 'd2_e6', name: 'Curl Martillo', target: 'Braquial y Antebrazo', sets: 3, reps: '10-12', rest: 60, note: 'Mancuernas en agarre neutro.' }
+                ]
+            },
+            {
+                id: 'day3',
+                title: 'Día 3: Piernas (Legs)',
+                subtitle: 'Cuádriceps, Femoral, Aductor y Gemelos',
+                color: 'from-amber-600 to-orange-600',
+                badge: 'Legs',
+                exercises: [
+                    { id: 'd3_e1', name: 'Sentadilla Libre / Hack', target: 'Cuádriceps', sets: 3, reps: '8-10', rest: 120, note: 'Bajar controlado. Mantener la espalda neutra.' },
+                    { id: 'd3_e2', name: 'Sillón de Extensiones', target: 'Cuádriceps Aislamiento', sets: 3, reps: '12-15', rest: 60, note: 'Pausa de 1s en la parte alta del movimiento.' },
+                    { id: 'd3_e3', name: 'Peso Muerto Rumano', target: 'Isquiotibiales', sets: 3, reps: '8-10', rest: 90, note: 'Llevar cadera hacia atrás sintiendo estiramiento.' },
+                    { id: 'd3_e4', name: 'Curl Femoral Acostado/Sentado', target: 'Isquiotibiales', sets: 3, reps: '10-12', rest: 75, note: 'Retorno lento sin dejar caer el peso.' },
+                    { id: 'd3_e5', name: 'Máquina Aductores', target: 'Aductores', sets: 3, reps: '12-15', rest: 60, note: 'Rango amplio y controlado.' },
+                    { id: 'd3_e6', name: 'Elevación de Gemelos de Pie', target: 'Gemelos', sets: 4, reps: '12-15', rest: 60, note: 'Pausa de 2s abajo y arriba.' }
+                ]
+            },
+            {
+                id: 'day4',
+                title: 'Día 4: Cardio & Core',
+                subtitle: 'Resistencia Aeróbica y Abdomen',
+                color: 'from-rose-600 to-pink-600',
+                badge: 'Cardio',
+                exercises: [
+                    { id: 'd4_e1', name: 'Cinta (Inclinada / Trote)', target: 'Cardiovascular', sets: 1, reps: '20-30 min', rest: 0, note: 'Caminata con elevación o trote suave.' },
+                    { id: 'd4_e2', name: 'Bici Estática / HIIT', target: 'Cardiovascular', sets: 1, reps: '20 min', rest: 0, note: 'Ritmo moderado o intervalos intensos.' },
+                    { id: 'd4_e3', name: 'Plancha Abdominal', target: 'Core', sets: 3, reps: '45-60 seg', rest: 60, note: 'Mantener cuerpo alineado y glúteos contraídos.' },
+                    { id: 'd4_e4', name: 'Rueda Abdominal / Crunch', target: 'Abdomen Frontal', sets: 3, reps: '12-15', rest: 60, note: 'Flexionar columna sin tirar del cuello.' }
+                ]
+            },
+            {
+                id: 'day5',
+                title: 'Día 5: Tren Superior',
+                subtitle: 'Pecho, Espalda, Hombro y Brazos',
+                color: 'from-violet-600 to-purple-600',
+                badge: 'Upper',
+                exercises: [
+                    { id: 'd5_e1', name: 'Press Pecho Máquina / Fondos', target: 'Pecho', sets: 3, reps: '10-12', rest: 90, note: 'Mantener tensión constante en el pectoral.' },
+                    { id: 'd5_e2', name: 'Cruce de Poleas (Aperturas)', target: 'Pecho Aislamiento', sets: 3, reps: '12-15', rest: 60, note: 'Juntar manos adelante apretando el pecho.' },
+                    { id: 'd5_e3', name: 'Remo Unilateral Mancuerna', target: 'Espalda Latitud', sets: 3, reps: '10-12', rest: 75, note: 'Llevar la mancuerna en dirección a la cadera.' },
+                    { id: 'd5_e4', name: 'Pullover Polea Cuerda/Barra', target: 'Dorsal Aislamiento', sets: 3, reps: '12-15', rest: 60, note: 'Mantener codos ligeramente semiflexionados.' },
+                    { id: 'd5_e5', name: 'Vuelos Laterales Polea', target: 'Hombro Lateral', sets: 3, reps: '12-15', rest: 60, note: 'Polea baja por detrás o delante del cuerpo.' },
+                    { id: 'd5_e6', name: 'Curl Inclinado / Copa Tríceps', target: 'Bícep / Trícep', sets: 3, reps: '10-12', rest: 75, note: 'Aislamiento de brazos.' }
+                ]
+            }
+        ];
+
+        let activeTab = 'workout';
+        let selectedDayId = 'day1';
+        let workoutLogs = JSON.parse(localStorage.getItem('gymtrack_pro_logs') || '{}');
+        let timerInterval = null;
+        let timerRemaining = 0;
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            switchTab('workout');
+        });
+
+        function saveLogsToStorage() {
+            localStorage.setItem('gymtrack_pro_logs', JSON.stringify(workoutLogs));
+        }
+
+        // Tab Navigation
+        function switchTab(tab) {
+            activeTab = tab;
+            ['workout', 'history', 'rm', 'settings'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === tab) {
+                    navBtn.className = "flex flex-col items-center justify-center text-indigo-400 font-bold transition-colors";
+                } else {
+                    navBtn.className = "flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition-colors";
+                }
+            });
+
+            const viewport = document.getElementById('app-viewport');
+            if (tab === 'workout') renderWorkoutView(viewport);
+            else if (tab === 'history') renderHistoryView(viewport);
+            else if (tab === 'rm') renderRmView(viewport);
+            else if (tab === 'settings') renderSettingsView(viewport);
+
+            lucide.createIcons();
+        }
+
+        function renderWorkoutView(container) {
+            const currentDay = WORKOUT_PROGRAM.find(d => d.id === selectedDayId) || WORKOUT_PROGRAM[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            if (!workoutLogs[todayStr]) workoutLogs[todayStr] = {};
+
+            container.innerHTML = `
+                <!-- Day Pills Navigation -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-3 custom-scrollbar mb-4 -mx-1 px-1">
+                    ${WORKOUT_PROGRAM.map(day => `
+                        <button onclick="selectWorkoutDay('${day.id}')" class="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${day.id === selectedDayId ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-900 text-slate-400 border border-slate-800/80 hover:text-slate-200'}">
+                            ${day.badge}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <!-- Active Day Banner -->
+                <div class="bg-gradient-to-r ${currentDay.color} rounded-2xl p-4 mb-4 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-3 -bottom-3 opacity-15 text-white">
+                        <i data-lucide="dumbbell" class="w-28 h-28"></i>
+                    </div>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold uppercase tracking-wider mb-1.5">Rutina Activa</span>
+                    <h2 class="text-xl font-extrabold tracking-tight">${currentDay.title}</h2>
+                    <p class="text-xs text-white/85 mt-0.5 font-medium">${currentDay.subtitle}</p>
+                </div>
+
+                <!-- Exercise List -->
+                <div class="space-y-4">
+                    ${currentDay.exercises.map((ex, idx) => {
+                        const exData = workoutLogs[todayStr][ex.id] || { sets: [{}, {}, {}], completed: false };
+                        const isCardio = ex.sets === 1 && ex.reps.includes('min');
+
+                        // Calculate total volume for this exercise
+                        let totalVol = 0;
+                        if (!isCardio && exData.sets) {
+                            exData.sets.forEach(s => {
+                                const w = parseFloat(s.weight) || 0;
+                                const r = parseFloat(s.reps) || 0;
+                                totalVol += (w * r);
+                            });
+                        }
+
+                        return `
+                            <div class="bg-slate-900 border ${exData.completed ? 'border-emerald-500/50 bg-slate-900/90' : 'border-slate-800'} rounded-2xl p-4 shadow-sm transition-all">
+                                <!-- Title & Video -->
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <div class="flex items-start gap-2.5">
+                                        <button onclick="toggleExerciseComplete('${todayStr}', '${ex.id}')" class="mt-0.5 shrink-0 w-5 h-5 rounded-md border ${exData.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-700 bg-slate-950'} flex items-center justify-center transition-all">
+                                            ${exData.completed ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
+                                        </button>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">#${idx + 1} ${ex.target}</span>
+                                            <h3 class="font-bold text-slate-100 text-sm mt-1 leading-snug">${ex.name}</h3>
+                                        </div>
+                                    </div>
+                                    <a href="https://www.youtube.com/results?search_query=ejercicio+${encodeURIComponent(ex.name)}" target="_blank" class="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-xl hover:bg-rose-500/20 active:scale-95 transition-all">
+                                        <i data-lucide="youtube" class="w-3.5 h-3.5"></i> Video
+                                    </a>
+                                </div>
+
+                                <p class="text-[11px] text-slate-400 mb-3 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80 leading-relaxed">
+                                    <i data-lucide="info" class="w-3 h-3 inline mr-1 text-slate-500"></i>${ex.note}
+                                </p>
+
+                                <!-- Target Meta -->
+                                <div class="flex items-center justify-between text-[11px] text-slate-400 mb-3 px-1">
+                                    <span>Objetivo: <strong class="text-indigo-300 font-semibold">${ex.sets} series x ${ex.reps}</strong></span>
+                                    ${ex.rest > 0 ? `
+                                        <button onclick="startRestTimer(${ex.rest})" class="text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg flex items-center gap-1 active:scale-95">
+                                            <i data-lucide="timer" class="w-3 h-3"></i> ${ex.rest}s descanso
+                                        </button>
+                                    ` : ''}
+                                </div>
+
+                                <!-- Set Log Table -->
+                                ${!isCardio ? `
+                                    <div class="space-y-2 mb-3">
+                                        <div class="grid grid-cols-3 gap-2 text-[10px] uppercase tracking-wider font-bold text-slate-500 text-center px-1">
+                                            <span>Serie</span>
+                                            <span>Peso (Kg)</span>
+                                            <span>Reps</span>
+                                        </div>
+                                        ${[0, 1, 2].slice(0, ex.sets).map(sIdx => {
+                                            const setVal = (exData.sets && exData.sets[sIdx]) || { weight: '', reps: '' };
+                                            return `
+                                                <div class="grid grid-cols-3 gap-2 items-center">
+                                                    <span class="text-center font-bold text-xs text-slate-400 bg-slate-950 py-2 rounded-xl border border-slate-800">S${sIdx + 1}</span>
+                                                    <input type="number" step="0.5" placeholder="0" value="${setVal.weight || ''}" onchange="updateSetData('${todayStr}', '${ex.id}', ${sIdx}, 'weight', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-center text-sm font-bold text-white focus:outline-none focus:border-indigo-500">
+                                                    <input type="number" placeholder="0" value="${setVal.reps || ''}" onchange="updateSetData('${todayStr}', '${ex.id}', ${sIdx}, 'reps', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-center text-sm font-bold text-indigo-400 focus:outline-none focus:border-indigo-500">
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+
+                                    <!-- Volume summary for exercise -->
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+                                        <span class="text-slate-400 font-medium">Volumen Total Ejercicio:</span>
+                                        <span class="font-extrabold text-emerald-400">${totalVol.toFixed(1)} Kg</span>
+                                    </div>
+                                ` : `
+                                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                                        <span class="text-xs text-slate-300">Marcar sesión finalizada</span>
+                                        <button onclick="toggleExerciseComplete('${todayStr}', '${ex.id}')" class="px-3 py-1.5 rounded-xl ${exData.completed ? 'bg-emerald-500 text-slate-950' : 'bg-indigo-600 text-white'} text-xs font-bold active:scale-95">
+                                            ${exData.completed ? 'Completado ✓' : 'Marcar Hecho'}
+                                        </button>
+                                    </div>
+                                `}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function selectWorkoutDay(dayId) {
+            selectedDayId = dayId;
+            renderWorkoutView(document.getElementById('app-viewport'));
+            lucide.createIcons();
+        }
+
+        function updateSetData(date, exId, setIdx, field, val) {
+            if (!workoutLogs[date]) workoutLogs[date] = {};
+            if (!workoutLogs[date][exId]) workoutLogs[date][exId] = { sets: [{}, {}, {}], completed: false };
+            if (!workoutLogs[date][exId].sets[setIdx]) workoutLogs[date][exId].sets[setIdx] = {};
+
+            workoutLogs[date][exId].sets[setIdx][field] = val;
+            saveLogsToStorage();
+
+            // Re-render to update total volume calculation
+            renderWorkoutView(document.getElementById('app-viewport'));
+            lucide.createIcons();
+        }
+
+        function toggleExerciseComplete(date, exId) {
+            if (!workoutLogs[date]) workoutLogs[date] = {};
+            if (!workoutLogs[date][exId]) workoutLogs[date][exId] = { sets: [{}, {}, {}], completed: false };
+
+            workoutLogs[date][exId].completed = !workoutLogs[date][exId].completed;
+            saveLogsToStorage();
+
+            renderWorkoutView(document.getElementById('app-viewport'));
+            lucide.createIcons();
+        }
+
+        function renderHistoryView(container) {
+            const dates = Object.keys(workoutLogs).sort().reverse();
+
+            let totalLifetimeVol = 0;
+            let totalCompletedEx = 0;
+
+            dates.forEach(d => {
+                Object.values(workoutLogs[d]).forEach(ex => {
+                    if (ex.completed) totalCompletedEx++;
+                    if (ex.sets) {
+                        ex.sets.forEach(s => {
+                            totalLifetimeVol += ((parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0));
+                        });
+                    }
+                });
+            });
+
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-white">Historial de Cargas</h2>
+                    <p class="text-xs text-slate-400">Resumen y volumen acumulado por fecha</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Ejercicios Hechos</span>
+                        <span class="text-xl font-extrabold text-indigo-400 mt-0.5 block">${totalCompletedEx}</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Volumen Total</span>
+                        <span class="text-xl font-extrabold text-emerald-400 mt-0.5 block">${(totalLifetimeVol / 1000).toFixed(1)}k Kg</span>
+                    </div>
+                </div>
+
+                ${dates.length === 0 ? `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs">
+                        Aún no tienes cargas registradas. Comienza a anotar tu entrenamiento en la pestaña "Rutina".
+                    </div>
+                ` : `
+                    <div class="space-y-4">
+                        ${dates.map(date => {
+                            const dayLogs = workoutLogs[date];
+                            let dayVol = 0;
+                            const loggedExKeys = Object.keys(dayLogs);
+
+                            loggedExKeys.forEach(k => {
+                                const sets = dayLogs[k].sets || [];
+                                sets.forEach(s => {
+                                    dayVol += ((parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0));
+                                });
+                            });
+
+                            if (loggedExKeys.length === 0) return '';
+
+                            return `
+                                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
+                                            <span class="font-bold text-xs text-slate-200">${date}</span>
+                                        </div>
+                                        <span class="text-xs font-extrabold text-emerald-400">${dayVol.toFixed(0)} kg total</span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        ${loggedExKeys.map(exId => {
+                                            const exLog = dayLogs[exId];
+                                            // Find exercise name from program
+                                            let name = exId;
+                                            WORKOUT_PROGRAM.forEach(dp => {
+                                                const found = dp.exercises.find(e => e.id === exId);
+                                                if (found) name = found.name;
+                                            });
+
+                                            return `
+                                                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/60">
+                                                    <div class="flex items-center justify-between text-xs mb-1">
+                                                        <span class="font-bold text-slate-200">${name}</span>
+                                                        ${exLog.completed ? '<span class="text-[10px] text-emerald-400 font-bold">✓ Completado</span>' : ''}
+                                                    </div>
+                                                    <div class="flex flex-wrap gap-2 text-[11px] text-slate-400">
+                                                        ${(exLog.sets || []).map((s, idx) => s.weight ? `
+                                                            <span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-mono">S${idx+1}: <strong>${s.weight}kg</strong> × ${s.reps || 0}</span>
+                                                        ` : '').join('')}
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `}
+            `;
+        }
+
+        function renderRmView(container) {
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-white">Calculadora 1RM</h2>
+                    <p class="text-xs text-slate-400">Estima tu Repetición Máxima (Fórmula Epley)</p>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl mb-5 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Peso Levantado (Kg)</label>
+                        <input type="number" id="rm-weight" placeholder="Ej: 80" oninput="calculateRM()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-bold text-base focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Repeticiones Logradas</label>
+                        <input type="number" id="rm-reps" placeholder="Ej: 8" oninput="calculateRM()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-bold text-base focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="bg-gradient-to-tr from-indigo-900/40 to-slate-950 p-4 rounded-xl border border-indigo-500/30 text-center">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300">1RM Estimado</span>
+                        <div id="rm-result" class="text-3xl font-black text-emerald-400 mt-1 font-mono">0.0 Kg</div>
+                    </div>
+                </div>
+
+                <!-- Percentages Breakdown -->
+                <div id="rm-percentages" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
+                    <h3 class="font-bold text-xs text-slate-300 mb-2">Porcentajes de Carga</h3>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">95% (2 Reps)</span>
+                            <strong id="rm-95" class="text-white font-mono">-</strong>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">90% (4 Reps)</span>
+                            <strong id="rm-90" class="text-white font-mono">-</strong>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">85% (6 Reps)</span>
+                            <strong id="rm-85" class="text-white font-mono">-</strong>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">80% (8 Reps)</span>
+                            <strong id="rm-80" class="text-white font-mono">-</strong>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">75% (10 Reps)</span>
+                            <strong id="rm-75" class="text-white font-mono">-</strong>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex justify-between">
+                            <span class="text-slate-400">70% (12 Reps)</span>
+                            <strong id="rm-70" class="text-white font-mono">-</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateRM() {
+            const w = parseFloat(document.getElementById('rm-weight').value) || 0;
+            const r = parseFloat(document.getElementById('rm-reps').value) || 0;
+
+            if (w <= 0 || r <= 0) {
+                document.getElementById('rm-result').innerText = '0.0 Kg';
+                ['95', '90', '85', '80', '75', '70'].forEach(p => {
+                    document.getElementById(`rm-${p}`).innerText = '-';
+                });
+                return;
+            }
+
+            // Epley Formula: 1RM = W * (1 + R/30)
+            const rm1 = w * (1 + r / 30);
+            document.getElementById('rm-result').innerText = `${rm1.toFixed(1)} Kg`;
+
+            const percents = [95, 90, 85, 80, 75, 70];
+            percents.forEach(p => {
+                document.getElementById(`rm-${p}`).innerText = `${(rm1 * (p / 100)).toFixed(1)} kg`;
+            });
+        }
+
+        function renderSettingsView(container) {
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-white">Configuración & Datos</h2>
+                    <p class="text-xs text-slate-400">Exporta, importa o instala tu aplicación</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                        <h3 class="font-bold text-sm text-slate-200 mb-1">Instalar como App PWA</h3>
+                        <p class="text-xs text-slate-400 mb-3">Lleva la aplicación en tu pantalla de inicio sin usar tienda de apps.</p>
+                        <button onclick="togglePwaModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs active:scale-95 flex items-center justify-center gap-2">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i> Ver Guía de Instalación
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                        <h3 class="font-bold text-sm text-slate-200">Respaldo de Datos</h3>
+                        <p class="text-xs text-slate-400">Exporta tus cargas registradas para no perderlas al cambiar de celular.</p>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="exportJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-3 rounded-xl border border-slate-700 text-xs flex items-center justify-center gap-1.5 active:scale-95">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-400"></i> Exportar JSON
+                            </button>
+                            <button onclick="exportCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-3 rounded-xl border border-slate-700 text-xs flex items-center justify-center gap-1.5 active:scale-95">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-400"></i> Exportar CSV
+                            </button>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-800">
+                            <label class="block text-xs font-semibold text-slate-400 mb-2">Importar Copia de Seguridad (JSON)</label>
+                            <input type="file" id="import-file" accept=".json" onchange="importJSON(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-red-500/20 rounded-2xl p-4">
+                        <h3 class="font-bold text-sm text-red-400 mb-1">Zona de Peligro</h3>
+                        <p class="text-xs text-slate-400 mb-3">Borra todo el historial de cargas guardado en el celular.</p>
+                        <button onclick="clearAllData()" class="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold py-2.5 px-4 rounded-xl text-xs active:scale-95">
+                            Borrar Todos los Datos
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Export and Import Logic
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workoutLogs, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `GymTrack_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Fecha,EjercicioID,Serie,Peso,Reps,Volumen\n";
+            Object.keys(workoutLogs).forEach(date => {
+                Object.keys(workoutLogs[date]).forEach(exId => {
+                    const sets = workoutLogs[date][exId].sets || [];
+                    sets.forEach((s, idx) => {
+                        if (s.weight || s.reps) {
+                            const w = parseFloat(s.weight) || 0;
+                            const r = parseFloat(s.reps) || 0;
+                            csvContent += `${date},${exId},${idx + 1},${w},${r},${w * r}\n`;
+                        }
+                    });
+                });
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `GymTrack_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    workoutLogs = parsed;
+                    saveLogsToStorage();
+                    alert('¡Datos importados con éxito!');
+                    switchTab('workout');
+                } catch (err) {
+                    alert('Error al leer el archivo JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm('¿Estás seguro de borra todo tu historial de entrenamiento? Esta acción no se puede deshacer.')) {
+                workoutLogs = {};
+                saveLogsToStorage();
+                switchTab('workout');
+            }
+        }
+
+        // Timer Logic
+        function startRestTimer(seconds) {
+            clearInterval(timerInterval);
+            timerRemaining = seconds;
+            document.getElementById('floating-timer-card').classList.remove('hidden');
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerRemaining--;
+                if (timerRemaining <= 0) {
+                    stopRestTimer();
+                    // Audio & Vibration Alert
+                    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+                    try {
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = audioCtx.createOscillator();
+                        osc.connect(audioCtx.destination);
+                        osc.frequency.value = 880;
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.5);
+                    } catch (e) {}
+                } else {
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerRemaining / 60).toString().padStart(2, '0');
+            const secs = (timerRemaining % 60).toString().padStart(2, '0');
+            const str = `${mins}:${secs}`;
+            document.getElementById('rest-timer-countdown').innerText = str;
+            document.getElementById('header-timer-display').innerText = str;
+        }
+
+        function addTimerTime(secs) {
+            timerRemaining += secs;
+            updateTimerDisplay();
+        }
+
+        function stopRestTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('floating-timer-card').classList.add('hidden');
+            document.getElementById('header-timer-display').innerText = '00:00';
+        }
+
+        function togglePwaModal() {
+            const modal = document.getElementById('pwa-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function openTimerModal() {
+            document.getElementById('timer-modal').classList.remove('hidden');
+        }
+
+        function closeTimerModal() {
+            document.getElementById('timer-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

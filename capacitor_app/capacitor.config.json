@@ -1,0 +1,9 @@
+{
+  "appId": "org.mau.gymtrack",
+  "appName": "GymTrack Pro",
+  "webDir": "www",
+  "backgroundColor": "#0f172a",
+  "android": {
+    "backgroundColor": "#0f172a"
+  }
+}

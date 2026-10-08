@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GymTrack Pro</string>
+    <string name="title_activity_main">GymTrack Pro</string>
+    <string name="package_name">org.mau.gymtrack</string>
+    <string name="custom_url_scheme">org.mau.gymtrack</string>
+</resources>
