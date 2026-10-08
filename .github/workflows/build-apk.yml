@@ -41,6 +41,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.36
 
+      - name: Forzar gcc-11 (el nativo de Ubuntu 22.04)
+        # Seguro extra: el runner trae varias versiones de gcc instaladas
+        # y a veces no usa la 11 por defecto, lo que puede afectar como
+        # se compilan dependencias nativas de Android.
+        run: |
+          sudo apt-get install -y gcc-11 g++-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
+          sudo update-alternatives --set gcc /usr/bin/gcc-11
+          sudo update-alternatives --set g++ /usr/bin/g++-11
+
       - name: Build with Buildozer
         run: |
           yes | buildozer android debug

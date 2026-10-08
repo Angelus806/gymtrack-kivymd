@@ -49,6 +49,14 @@ android.minapi = 23
 # (str) Android NDK version to use
 android.ndk = 25b
 
+# (str) python-for-android branch to use.
+# Se fuerza "develop" (en vez de la version que trae buildozer por
+# defecto) porque esa version vieja falla al compilar "hostpython3"
+# en el runner actual de GitHub Actions (error en cascada de
+# "implicit-function-declaration" al compilar CPython internamente,
+# ya corregido en la rama de desarrollo de python-for-android).
+p4a.branch = develop
+
 # (list) The Android archs to build for
 android.archs = arm64-v8a, armeabi-v7a
 
